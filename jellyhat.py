@@ -4,12 +4,11 @@ import argparse
 import sys
 import time
 import traceback
-import os
-from PIL import Image
 
 from config import THEME, JELLYFIN_URL, JELLYFIN_API_KEY
 from jellyfin_client import JellyfinClient
 from hardware import DisplayManager
+from renderer import JellyRenderer
 
 def get_args():
     parser = argparse.ArgumentParser(description="JellyHat")
@@ -21,18 +20,6 @@ def get_args():
     parser.add_argument("-d", "--debug", action="store_true", help="More verbose error messages")
     return parser.parse_args()
 
-def get_placeholder_image():
-    size = min(THEME["layout"]["art_max_height"], THEME["layout"]["art_max_width"])
-    placeholder_path = os.path.join(os.path.dirname(__file__), "placeholder.jpg")
-    if os.path.exists(placeholder_path):
-        try:
-            img = Image.open(placeholder_path).convert("RGB")
-            return img.resize((size, size), Image.ANTIALIAS)
-        except Exception:
-            pass
-    print("Warning: Placeholder image not found or failed to load. Using blank image.")
-    return Image.new("RGB", (size, size), THEME["colors"]["background"])
-
 def main():
     if not JELLYFIN_URL or not JELLYFIN_API_KEY:
         print("Missing JELLYFIN_URL or JELLYFIN_API_KEY in .env")
@@ -43,11 +30,10 @@ def main():
     
     try:
         dm = DisplayManager(rotate=args.rotate)
+        renderer = JellyRenderer(dm)
     except RuntimeError as e:
         print(f"Hardware Error: {e}")
         sys.exit(1)
-
-    placeholder_img = get_placeholder_image()
 
     current_item_id = None
     cached_art = None
@@ -69,44 +55,30 @@ def main():
             if not active_item and (time.time() - last_active_time) > (args.blank * 60):
                 if not is_blanked:
                     is_blanked = True
-                    dm.clear()
-                    dm.set_led(THEME["colors"]["temp_led_off"])
-                    dm.update()
+                    renderer.blank()
                 time.sleep(args.interval)
                 continue
 
             # --- RENDERING ---
-            dm.clear()
-            dm.set_led(THEME["colors"]["temp_led_hot"] if is_hot else THEME["colors"]["temp_led_normal"])
+            renderer.clear(is_hot=is_hot)
 
             if err:
-                dm.draw_text(err, (dm.width//2 - 40, dm.height//2), "status", THEME["colors"]["status_err"])
+                renderer.draw_error(err)
             elif active_item:
                 item_id = active_item.get('ParentLogoItemId') or active_item.get('Id')
                 if item_id != current_item_id:
                     current_item_id = item_id
                     cached_art = client.get_artwork(item_id, THEME["layout"]["art_max_height"], THEME["layout"]["art_max_width"])
-                    if not cached_art:
-                        cached_art = placeholder_img
 
-                dm.paste_image(cached_art)
-                
-                is_paused = active_item.get("IsPaused", False)
-                symbol = THEME["strings"]["pause_symbol"] if is_paused else THEME["strings"]["play_symbol"]
-                title = dm.truncate_text(f"{symbol} {active_item.get('Name', 'Unknown')}", "title", dm.width - 20)
-                artist = dm.truncate_text(active_item.get("Artists", ["Unknown"])[0], "meta", dm.width - 20)
-                
-                dm.draw_text(title, (THEME["layout"]["text_x"], THEME["layout"]["art_max_height"] + THEME["layout"]["title_y"]), "title", THEME["colors"]["text_main"])
-                dm.draw_text(artist, (THEME["layout"]["text_x"], THEME["layout"]["art_max_height"] + THEME["layout"]["artist_y"]), "meta", THEME["colors"]["text_dim"])
+                renderer.draw_playing(active_item, cached_art)
             else:
                 current_item_id = None
-                dm.draw_text(THEME["strings"]["idle"], (dm.width//2 - 60, dm.height//2), "status", THEME["colors"]["status_idle"])
+                renderer.draw_idle()
 
             if not args.hide_temp and temp is not None:
-                color = THEME["colors"]["temp_text_hot"] if is_hot else THEME["colors"]["temp_text_normal"]
-                dm.draw_text(f"{temp:.1f}C", (THEME["layout"]["text_x"], THEME["layout"]["art_max_height"] + THEME["layout"]["temp_y"]), "meta", color)
+                renderer.draw_temp(temp, is_hot)
 
-            dm.update()
+            renderer.update()
             time.sleep(args.interval)
             
     except Exception as e:
