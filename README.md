@@ -62,7 +62,7 @@ python3 jellyhat.py
 - `--interval (-i)`: Refresh rate in seconds (Default: 5)
 - `--threshold (-t)`: CPU Temp (°C) to trigger Red LED (Default: 70.0)
 - `--rotate (-r)`: Rotate display 180 degrees (Default: False)
-- `--blank (-b)`: Minutes of idle before screen blanking (Default: 30)
+- `--blank (-b)`: Minutes of idle before screen blanking (Default: 10)
 - `--hide-temp (-H)`: Hide the CPU temperature text (Default: False)
 - `--debug (-d)`: Enable verbose console logging (Default: False)
 

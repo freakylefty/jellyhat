@@ -91,7 +91,7 @@ def get_args():
     parser.add_argument("-i", "--interval", type=int, default=5, help="Refresh interval (s)")
     parser.add_argument("-t", "--threshold", type=float, default=70.0, help="Temp threshold for LED")
     parser.add_argument("-r", "--rotate", action="store_true", help="Rotate 180°")
-    parser.add_argument("-b", "--blank", type=int, default=30, help="Minutes before blanking screen")
+    parser.add_argument("-b", "--blank", type=int, default=10, help="Minutes before blanking screen")
     parser.add_argument("-H", "--hide-temp", action="store_true", help="Hide temp text")
     parser.add_argument("-d", "--debug", action="store_true", help="More verbose error messages")
     return parser.parse_args()
@@ -123,12 +123,16 @@ def main():
             traceback.print_exc()
         sys.exit(1)
 
+    # --- Init layout calculations ---
     placeholder_path = os.path.join(os.path.dirname(__file__), "placeholder.png")
     art_width = THEME["layout"]["art_max_width"]
     art_height = THEME["layout"]["art_max_height"]
     art_size = min([art_width, art_height])
+    textX = THEME["layout"]["text_x"]
+    titleY = art_height + THEME["layout"]["title_y"]
+    artistY = art_height + THEME["layout"]["artist_y"]
     
-    # State tracking
+    # --- State tracking ---
     current_item_id = None
     cached_art = None
     last_active_time = time.time()
@@ -168,7 +172,6 @@ def main():
             is_hot = temp >= args.threshold
             temp_text_color = THEME["colors"]["temp_text_hot"] if is_hot else THEME["colors"]["temp_text_normal"]
             temp_led_color = THEME["colors"]["temp_led_hot"] if is_hot else THEME["colors"]["temp_led_normal"]                
-            set_hat_led(dh, temp_led_color)
 
             # --- BLANKING LOGIC ---
             if active_item:
@@ -182,8 +185,12 @@ def main():
                     print(THEME["strings"]["blanked"])
                     is_blanked = True
                 
+                set_hat_led(dh, THEME["colors"]["temp_led_off"])
+                dh.display()  # Push the cleared buffer to hardware
                 time.sleep(args.interval)
                 continue
+
+            set_hat_led(dh, temp_led_color)
 
             # --- RENDERING ---
             
@@ -229,9 +236,6 @@ def main():
                 title = active_item.get("Name", "Unknown Track")
                 artist = active_item.get("Artists", ["Unknown Artist"])[0]
                 
-                textX = THEME["layout"]["text_x"]
-                titleY = art_height + THEME["layout"]["title_y"]
-                artistY = art_height + THEME["layout"]["artist_y"]
                 disp_title = truncate_text_by_width(title, f_title, width - (2 * textX))
                 disp_artist = truncate_text_by_width(artist, f_meta, width - (2 * textX))
 
