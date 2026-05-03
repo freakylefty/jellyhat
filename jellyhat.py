@@ -21,6 +21,18 @@ def get_args():
     parser.add_argument("-d", "--debug", action="store_true", help="More verbose error messages")
     return parser.parse_args()
 
+def get_placeholder_image():
+    size = min(THEME["layout"]["art_max_height"], THEME["layout"]["art_max_width"])
+    placeholder_path = os.path.join(os.path.dirname(__file__), "placeholder.jpg")
+    if os.path.exists(placeholder_path):
+        try:
+            img = Image.open(placeholder_path).convert("RGB")
+            return img.resize((size, size), Image.ANTIALIAS)
+        except Exception:
+            pass
+    print("Warning: Placeholder image not found or failed to load. Using blank image.")
+    return Image.new("RGB", (size, size), THEME["colors"]["background"])
+
 def main():
     if not JELLYFIN_URL or not JELLYFIN_API_KEY:
         print("Missing JELLYFIN_URL or JELLYFIN_API_KEY in .env")
@@ -35,8 +47,7 @@ def main():
         print(f"Hardware Error: {e}")
         sys.exit(1)
 
-    placeholder_path = os.path.join(os.path.dirname(__file__), "placeholder.png")
-    placeholder_img = Image.open(placeholder_path).convert("RGB") if os.path.exists(placeholder_path) else None
+    placeholder_img = get_placeholder_image()
 
     current_item_id = None
     cached_art = None

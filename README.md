@@ -150,7 +150,7 @@ Management:
 - `jellyhat.py`: The main application logic.
 - `requirements.txt`: Pinned library versions for stability.
 - `fonts/`: Directory for UI fonts (e.g., Roboto).
-- `placeholder.png`: Fallback image when no artwork is available.
+- `placeholder.jpg`: Fallback image when no artwork is available.
 - `.env`: (User Created) Secure storage for API credentials.
 
 ## License
