@@ -35,6 +35,8 @@ THEME = {
         "temp_y": 50,
     },
     "strings": {
-        "idle": "JELLYHAT IDLE"
+        "idle": "JELLYHAT IDLE",
+        "play_symbol": ">",
+        "pause_symbol": "="
     }
 }

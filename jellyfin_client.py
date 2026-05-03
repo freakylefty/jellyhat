@@ -8,20 +8,27 @@ class JellyfinClient:
         self.api_key = api_key
 
     def get_active_item(self):
-        """Fetches sessions and returns the prioritized NowPlayingItem."""
+        url = f"{self.url}/Sessions"
+        headers = {
+            "X-Emby-Token": self.api_key,
+            "Accept": "application/json"
+        }
         try:
-            r = requests.get(f"{self.url}/Sessions?api_key={self.api_key}", timeout=3)
-            r.raise_for_status()
-            sessions = r.json()
-            
-            # Prioritize playing over paused
-            active = next((s for s in sessions if "NowPlayingItem" in s and not s.get("PlayState", {}).get("IsPaused", False)), None)
-            if not active:
-                active = next((s for s in sessions if "NowPlayingItem" in s), None)
-                
-            return (active["NowPlayingItem"] if active else None), None
+            response = requests.get(url, headers=headers, timeout=5)
+            response.raise_for_status()
+            sessions = response.json()
+
+            for session in sessions:
+                if "NowPlayingItem" in session:
+                    item_data = session["NowPlayingItem"]
+                    play_state = session.get("PlayState", {})
+                    item_data["IsPaused"] = play_state.get("IsPaused", False)
+                    
+                    return item_data, None
+                    
+            return None, None
         except Exception as e:
-            return None, f"ERR: {type(e).__name__}"
+            return None, f"API Error: {str(e)}"
 
     def get_artwork(self, item_id, max_h, max_w):
         """Tries various image types from Jellyfin and returns a PIL Image."""

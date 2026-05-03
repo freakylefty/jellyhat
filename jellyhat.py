@@ -80,7 +80,9 @@ def main():
 
                 dm.paste_image(cached_art)
                 
-                title = dm.truncate_text(active_item.get("Name", "Unknown"), "title", dm.width - 20)
+                is_paused = active_item.get("IsPaused", False)
+                symbol = THEME["strings"]["pause_symbol"] if is_paused else THEME["strings"]["play_symbol"]
+                title = dm.truncate_text(f"{symbol} {active_item.get('Name', 'Unknown')}", "title", dm.width - 20)
                 artist = dm.truncate_text(active_item.get("Artists", ["Unknown"])[0], "meta", dm.width - 20)
                 
                 dm.draw_text(title, (THEME["layout"]["text_x"], THEME["layout"]["art_max_height"] + THEME["layout"]["title_y"]), "title", THEME["colors"]["text_main"])
