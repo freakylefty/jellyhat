@@ -20,6 +20,7 @@ class DisplayManager:
             return {
                 "title": ImageFont.truetype(font_path, THEME["fonts"]["size_title"]),
                 "meta": ImageFont.truetype(font_path, THEME["fonts"]["size_meta"]),
+                "meta_sm": ImageFont.truetype(font_path, THEME["fonts"]["size_meta_sm"]),
                 "status": ImageFont.truetype(font_path, THEME["fonts"]["size_status"])
             }
         except IOError:

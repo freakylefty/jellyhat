@@ -11,6 +11,7 @@ THEME = {
         "path": "fonts/Roboto-Medium.ttf",
         "size_title": 22,
         "size_meta": 16,
+        "size_meta_sm": 12,
         "size_status": 18
     },
     "colors": {
@@ -26,17 +27,24 @@ THEME = {
         "status_err": (255, 80, 80),
     },
     "layout": {
+        # The image size to request from Jellyfin
+        # It will be scaled to fit the max width and height while maintaining aspect ratio
         "art_max_width": 320,
         "art_max_height": 160,
-        "text_x": 10,
+        # Horiztonal insets for the text from the left edge of the display
+        "icon_inset": 10, 
+        "info_inset": 34,
+        "temp_inset": 10,
+        # Vertical offsets from the bottom of the artwork
         "title_y": 8,
-        "artist_y": 32,
-        "temp_y": 54,
+        "artist_y": 36,
+        "year_y": 58,
+        # Vertical offset from the bottom of the display
+        "temp_y": 20,
+        # Size of the border around the artwork, in pixels
         "border": 4
     },
     "strings": {
-        "idle": "JELLYHAT IDLE",
-        "play_symbol": ">",
-        "pause_symbol": "="
+        "idle": "JELLYHAT IDLE"
     }
 }

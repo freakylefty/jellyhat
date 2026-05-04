@@ -150,9 +150,13 @@ Management:
 - `jellyhat.py`: The main application logic.
 - `requirements.txt`: Pinned library versions for stability.
 - `fonts/`: Directory for UI fonts (e.g., Roboto).
-- `placeholder.jpg`: Fallback image when no artwork is available.
+- `assets/`: Directory for UI icons and placeholder album art.
 - `.env`: (User Created) Secure storage for API credentials.
 
 ## License
 
 This project is licensed under the MIT License.
+
+## Thanks
+
+Assets from [Kenney](https://www.kenney.nl/).

@@ -10,11 +10,28 @@ class JellyRenderer:
         self.width = display_manager.width
         self.height = display_manager.height
         self.placeholder_img = self._load_placeholder()
+        self.assets = {
+            "play": self._load_asset("play.png"),
+            "pause": self._load_asset("pause.png"),
+            "warning": self._load_asset("warning.png"),
+            "stop": self._load_asset("stop.png")
+        }
+
+    def _load_asset(self, filename, size=(20, 20)):
+        """Loads and resizes a UI asset from the assets folder."""
+        asset_path = os.path.join(os.path.dirname(__file__), "assets", filename)
+        try:
+            if os.path.exists(asset_path):
+                img = Image.open(asset_path).convert("RGBA")
+                return img.resize(size, Image.NEAREST)
+        except Exception as e:
+            print(f"Error loading asset {filename}: {e}")
+        return Image.new("RGBA", size, (0, 0, 0, 0))
 
     def _load_placeholder(self):
         """Loads and prepares the placeholder artwork."""
         size = min(THEME["layout"]["art_max_height"], THEME["layout"]["art_max_width"])
-        placeholder_path = os.path.join(os.path.dirname(__file__), "placeholder.jpg")
+        placeholder_path = os.path.join(os.path.dirname(__file__), "assets", "placeholder.jpg")
         if os.path.exists(placeholder_path):
             try:
                 img = Image.open(placeholder_path).convert("RGB")
@@ -38,10 +55,12 @@ class JellyRenderer:
 
     def draw_error(self, message):
         """Renders an error message centered on screen."""
+        self.draw_icon("warning", (self.width // 2 - 10, self.height // 2 - 24))
         self.dm.draw_text(message, (self.width // 2, self.height // 2), "status", THEME["colors"]["status_err"], align="center")
 
     def draw_idle(self):
         """Renders the idle screen state."""
+        self.draw_icon("stop", (self.width // 2 - 10, self.height // 2 - 24))
         self.dm.draw_text(THEME["strings"]["idle"], (self.width // 2, self.height // 2), "status", THEME["colors"]["status_idle"], align="center")
 
     def get_bordered_artwork(self, artwork):
@@ -61,16 +80,16 @@ class JellyRenderer:
 
         # Render Title with Play/Pause status
         is_paused = active_item.get("IsPaused", False)
-        symbol = THEME["strings"]["pause_symbol"] if is_paused else THEME["strings"]["play_symbol"]
-        title_text = f"{symbol} {active_item.get('Name', 'Unknown')}"
-        title = self.dm.truncate_text(title_text, "title", self.width - 20)
+        title = self.dm.truncate_text(active_item.get('Name', 'Unknown'), "title", self.width - 50)
         
         self.dm.draw_text(
             title, 
-            (THEME["layout"]["text_x"], THEME["layout"]["art_max_height"] + THEME["layout"]["title_y"]), 
+            (THEME["layout"]["info_inset"], THEME["layout"]["art_max_height"] + THEME["layout"]["title_y"]), 
             "title", 
             THEME["colors"]["text_main"]
         )
+
+        self.draw_icon("pause" if is_paused else "play", (THEME["layout"]["icon_inset"], THEME["layout"]["art_max_height"] + THEME["layout"]["title_y"] + 3))
 
         # Render Artist
         artists = active_item.get("Artists", ["Unknown"])
@@ -79,15 +98,32 @@ class JellyRenderer:
         
         self.dm.draw_text(
             artist, 
-            (THEME["layout"]["text_x"], THEME["layout"]["art_max_height"] + THEME["layout"]["artist_y"]), 
+            (THEME["layout"]["info_inset"], THEME["layout"]["art_max_height"] + THEME["layout"]["artist_y"]), 
             "meta", 
             THEME["colors"]["text_dim"]
         )
 
+        # Render Year
+        year = active_item.get("ProductionYear")
+        if year:
+            self.dm.draw_text(
+            f"({year})", 
+            (THEME["layout"]["info_inset"], THEME["layout"]["art_max_height"] + THEME["layout"]["year_y"]), 
+            "meta_sm", 
+            THEME["colors"]["text_dim"]
+        )
+        
+
+    def draw_icon(self, icon_key, position):
+        """Draws a predefined icon at the specified position."""
+        icon = self.assets.get(icon_key)
+        if icon:
+            self.dm.paste_image(icon, position)
+
     def draw_temp(self, temp, is_hot):
         """Renders the system temperature."""
         color = THEME["colors"]["temp_text_hot"] if is_hot else THEME["colors"]["temp_text_normal"]
-        self.dm.draw_text(f"{temp:.1f}C", (self.width - THEME["layout"]["text_x"], THEME["layout"]["art_max_height"] + THEME["layout"]["temp_y"]), "meta", color, align="right")
+        self.dm.draw_text(f"{temp:.1f}C", (self.width - THEME["layout"]["temp_inset"], self.height - THEME["layout"]["temp_y"]), "meta", color, align="right")
 
     def update(self):
         """Triggers the hardware display refresh."""
