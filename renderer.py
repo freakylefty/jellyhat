@@ -38,17 +38,26 @@ class JellyRenderer:
 
     def draw_error(self, message):
         """Renders an error message centered on screen."""
-        self.dm.draw_text(message, (self.width // 2 - 40, self.height // 2), "status", THEME["colors"]["status_err"])
+        self.dm.draw_text(message, (self.width // 2, self.height // 2), "status", THEME["colors"]["status_err"], align="center")
 
     def draw_idle(self):
         """Renders the idle screen state."""
-        self.dm.draw_text(THEME["strings"]["idle"], (self.width // 2 - 60, self.height // 2), "status", THEME["colors"]["status_idle"])
+        self.dm.draw_text(THEME["strings"]["idle"], (self.width // 2, self.height // 2), "status", THEME["colors"]["status_idle"], align="center")
+
+    def get_bordered_artwork(self, artwork):
+        """Adds a border around the artwork, with colour based on the art."""
+        if not artwork:
+            return self.placeholder_img
+        border_size = THEME["layout"]["border"]
+        border = artwork.resize((1, 1), Image.BOX)
+        bordered_art = Image.new("RGB", (artwork.width + (border_size * 2), artwork.height + (border_size * 2)), border.getpixel((0, 0)))
+        bordered_art.paste(artwork, (border_size, border_size))
+        return bordered_art
 
     def draw_playing(self, active_item, artwork):
         """Renders the 'Now Playing' screen with artwork and metadata."""
         # Render Artwork
-        art = artwork if artwork else self.placeholder_img
-        self.dm.paste_image(art)
+        self.dm.paste_image(artwork, (0, 0))
 
         # Render Title with Play/Pause status
         is_paused = active_item.get("IsPaused", False)
@@ -78,7 +87,7 @@ class JellyRenderer:
     def draw_temp(self, temp, is_hot):
         """Renders the system temperature."""
         color = THEME["colors"]["temp_text_hot"] if is_hot else THEME["colors"]["temp_text_normal"]
-        self.dm.draw_text(f"{temp:.1f}C", (THEME["layout"]["text_x"], THEME["layout"]["art_max_height"] + THEME["layout"]["temp_y"]), "meta", color)
+        self.dm.draw_text(f"{temp:.1f}C", (self.width - THEME["layout"]["text_x"], THEME["layout"]["art_max_height"] + THEME["layout"]["temp_y"]), "meta", color, align="right")
 
     def update(self):
         """Triggers the hardware display refresh."""

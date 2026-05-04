@@ -69,6 +69,7 @@ def main():
                 if item_id != current_item_id:
                     current_item_id = item_id
                     cached_art = client.get_artwork(item_id, THEME["layout"]["art_max_height"], THEME["layout"]["art_max_width"])
+                    cached_art = renderer.get_bordered_artwork(cached_art)
 
                 renderer.draw_playing(active_item, cached_art)
             else:

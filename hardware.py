@@ -48,7 +48,15 @@ class DisplayManager:
         if image:
             self.buffer.paste(image, position)
 
-    def draw_text(self, text, position, font_key, color):
+    def draw_text(self, text, position, font_key, color, align="left"):
+        if (align == "right"):
+            font = self.fonts[font_key]
+            text_width = font.getsize(text)[0]
+            position = (position[0] - text_width, position[1])
+        elif (align == "center" or align == "centre"): # Yeah yeah, I'm British
+            font = self.fonts[font_key]
+            text_width = font.getsize(text)[0]
+            position = (position[0] - text_width // 2, position[1])
         self.draw.text(position, text, font=self.fonts[font_key], fill=color)
 
     def update(self):

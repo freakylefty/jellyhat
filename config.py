@@ -29,10 +29,10 @@ THEME = {
         "art_max_width": 320,
         "art_max_height": 160,
         "text_x": 10,
-        "title_y": 4,
-        "artist_y": 28,
-        "temp_x": 10,
-        "temp_y": 50,
+        "title_y": 8,
+        "artist_y": 32,
+        "temp_y": 54,
+        "border": 4
     },
     "strings": {
         "idle": "JELLYHAT IDLE",
