@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import signal
 import sys
 import time
 import traceback
@@ -9,6 +10,13 @@ from config import THEME, JELLYFIN_URL, JELLYFIN_API_KEY
 from jellyfin_client import JellyfinClient
 from hardware import DisplayManager
 from renderer import JellyRenderer
+
+def teardown(dm):
+    if 'dm':
+        dm.set_led(THEME["colors"]["temp_led_off"])
+        dm.clear()
+        dm.update()
+    sys.exit(0)
 
 def get_args():
     parser = argparse.ArgumentParser(description="JellyHat")
@@ -31,6 +39,8 @@ def main():
     try:
         dm = DisplayManager(rotate=args.rotate)
         renderer = JellyRenderer(dm)
+        signal.signal(signal.SIGINT, lambda sig, frame: teardown(dm))
+        signal.signal(signal.SIGTERM, lambda sig, frame: teardown(dm))
     except RuntimeError as e:
         print(f"Hardware Error: {e}")
         sys.exit(1)
@@ -87,8 +97,7 @@ def main():
         if args.debug:
             traceback.print_exc()
     finally:
-        if 'dm' in locals():
-            dm.set_led(THEME["colors"]["temp_led_off"])
+        teardown(dm)
 
 if __name__ == "__main__":
     main()

@@ -1,4 +1,4 @@
-displayhatmini==0.0.2
-Pillow==5.4.1
-requests==2.21.0
-python-dotenv==0.21.1
+displayhatmini>=0.0.2
+Pillow>=10.0.0
+requests>=2.21.0
+python-dotenv>=0.21.1

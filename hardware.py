@@ -29,9 +29,9 @@ class DisplayManager:
 
     def truncate_text(self, text, font_key, max_width):
         font = self.fonts[font_key]
-        if font.getsize(text)[0] <= max_width:
+        if font.getlength(text) <= max_width:
             return text
-        while len(text) > 0 and font.getsize(text)[0] > max_width:
+        while len(text) > 0 and font.getlength(text) > max_width:
             text = text[:-1]
         return text + "..." if text else "..."
 
@@ -52,11 +52,11 @@ class DisplayManager:
     def draw_text(self, text, position, font_key, color, align="left"):
         if (align == "right"):
             font = self.fonts[font_key]
-            text_width = font.getsize(text)[0]
+            text_width = font.getlength(text)
             position = (position[0] - text_width, position[1])
         elif (align == "center" or align == "centre"): # Yeah yeah, I'm British
             font = self.fonts[font_key]
-            text_width = font.getsize(text)[0]
+            text_width = font.getlength(text)
             position = (position[0] - text_width // 2, position[1])
         self.draw.text(position, text, font=self.fonts[font_key], fill=color)
 

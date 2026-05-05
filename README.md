@@ -14,8 +14,18 @@ JellyHat is a Python-based "Now Playing" dashboard for the Pimoroni Display HAT 
 
 - Raspberry Pi (tested on Pi 4)
 - Pimoroni Display HAT Mini
+- **SPI Enabled**: Must be enabled via `raspi-config`.
 
 ## Installation
+
+1. **Enable Hardware Interfaces**:
+
+   The Display HAT Mini requires SPI to communicate with the screen.
+
+   ```bash
+   sudo raspi-config
+   # Go to Interface Options -> SPI -> Yes. Then reboot.
+   ```
 
 1. **Clone the Repository**:
 
@@ -24,20 +34,24 @@ JellyHat is a Python-based "Now Playing" dashboard for the Pimoroni Display HAT 
    cd jellyhat
    ```
 
-2. **Install Dependencies**:
-   It is recommended to use a virtual environment.
+1. **Install Dependencies**:
+
+   If you encounter issues with numpy or st7789, ensure you have system dependencies installed:
 
    ```bash
+   sudo apt install python3-pip python3-venv libjpeg-dev zlib1g-dev libfreetype6-dev liblcms2-dev libopenjp2-7-dev libtiff5-dev libatlas-base-dev gfortran -y
+   ```
+
+1. **Set up Virtual Environment**:
+
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
    pip install -r requirements.txt
    ```
 
-   **Note**: If you encounter issues with numpy or st7789, ensure you have system dependencies installed:
+1. **Configure Environment**:
 
-   ```bash
-   sudo apt-get install libatlas-base-dev gfortran
-   ```
-
-3. **Configure Environment**:
    Copy the example environment file and add your Jellyfin details:
 
    ```bash
@@ -51,10 +65,10 @@ JellyHat is a Python-based "Now Playing" dashboard for the Pimoroni Display HAT 
 
 ## Usage
 
-Run the script directly:
+Always run the script using the Python binary within your virtual environment:
 
 ```bash
-python3 jellyhat.py
+./venv/bin/python3 jellyhat.py
 ```
 
 ### Command Line Arguments
@@ -106,10 +120,11 @@ After=network.target
 
 [Service]
 # Replace with your actual user, path and options
-# e.g. ExecStart=/usr/bin/python3 /home/pi/jellyhat/jellyhat.py -r
+# e.g. ExecStart=/home/pi/jellyhat/venv/bin/python3 /home/pi/jellyhat/jellyhat.py -r
 User=<username>
 WorkingDirectory=<path_to_project>
-ExecStart=/usr/bin/python3 <path_to_project>/jellyhat.py
+# Note: We point directly to the python binary inside the venv
+ExecStart=<path_to_project>/venv/bin/python3 <path_to_project>/jellyhat.py
 
 # Auto-restart logic
 Restart=always
@@ -148,6 +163,10 @@ Management:
 ## Project Structure
 
 - `jellyhat.py`: The main application logic.
+- `jellyfin_client.py`: JellyFin interaction code.
+- `renderer.py`: Layout and output code.
+- `hardware.py`: Display abstraction and hardware-specific calls.
+- `config.py`: Centralized THEME and configuration logic.
 - `requirements.txt`: Pinned library versions for stability.
 - `fonts/`: Directory for UI fonts (e.g., Roboto).
 - `assets/`: Directory for UI icons and placeholder album art.

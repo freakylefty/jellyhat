@@ -35,7 +35,7 @@ class JellyRenderer:
         if os.path.exists(placeholder_path):
             try:
                 img = Image.open(placeholder_path).convert("RGB")
-                return img.resize((size, size), Image.ANTIALIAS)
+                return img.resize((size, size), Image.LANCZOS)
             except Exception:
                 pass
         print("Warning: Placeholder image not found or failed to load. Using blank image.")
