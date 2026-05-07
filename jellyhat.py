@@ -10,6 +10,7 @@ from config import THEME, JELLYFIN_URL, JELLYFIN_API_KEY
 from jellyfin_client import JellyfinClient
 from hardware import DisplayManager
 from renderer import JellyRenderer
+from screen_state import ScreenStateManager
 
 def teardown(dm):
     if dm:
@@ -24,8 +25,8 @@ def get_args():
     parser.add_argument("-i", "--interval", type=int, default=5, help="Refresh interval (s)")
     parser.add_argument("-t", "--threshold", type=float, default=70.0, help="Temp threshold for LED")
     parser.add_argument("-r", "--rotate", action="store_true", help="Rotate 180°")
-    parser.add_argument("-b", "--blank", type=int, default=10, help="Minutes before blanking screen")
-    parser.add_argument("-d", "--dim", type=int, default=10, help="Minutes before dimming screen")
+    parser.add_argument("-b", "--blank", type=int, default=10, help="Minutes before blanking screen. Set to 0 to disable blanking.")
+    parser.add_argument("-d", "--dim", type=int, default=10, help="Minutes before dimming screen. Set to 0 to disable dimming.")
     parser.add_argument("-H", "--hide-temp", action="store_true", help="Hide temp text")
     parser.add_argument("-v", "--verbose", action="store_true", help="More verbose error messages")
     return parser.parse_args()
@@ -49,10 +50,7 @@ def main():
 
     current_item_id = None
     cached_art = None
-    last_active_time = time.time()
-    last_playing_time = time.time()
-    is_blanked = False
-    is_paused = False
+    screen_state_manager = ScreenStateManager(args.blank, args.dim)
 
     try:
         while True:
@@ -60,20 +58,15 @@ def main():
             temp = dm.get_system_temp()
             is_hot = temp >= args.threshold if temp is not None else False
             
-            # --- BLANKING / DIMMING LOGIC ---
-            if active_item:
-                last_active_time = time.time()
-                is_paused = active_item.get("IsPaused", False)
-                if (not is_paused or is_blanked):
-                    # If we're active and not paused, or if we just started after a gap, reset the pause timer
-                    last_playing_time = time.time()
-                if is_blanked:
-                    is_blanked = False
+            is_item_paused = active_item.get("IsPaused", False) if active_item else False
+            screen_state_manager.update_activity(bool(active_item), is_item_paused)
             
-            if not active_item and (time.time() - last_active_time) > (args.blank * 60):
-                if not is_blanked:
-                    is_blanked = True
-                    renderer.blank()
+            # Handle blanking transition
+            if screen_state_manager.check_for_blanking_transition():
+                renderer.blank()
+            
+            # If currently blanked, skip rendering and wait for next interval
+            if screen_state_manager.is_currently_blanked():
                 time.sleep(args.interval)
                 continue
 
@@ -89,11 +82,10 @@ def main():
                     cached_art = client.get_artwork(item_id, THEME["layout"]["art_max_height"], THEME["layout"]["art_max_width"])
                     cached_art = renderer.get_bordered_artwork(cached_art)
 
-                dimmed = is_paused and (time.time() - last_playing_time) > (args.dim * 60)
+                dimmed = screen_state_manager.is_dim_needed()
                 renderer.draw_playing(active_item, cached_art, dimmed=dimmed)
             else:
                 current_item_id = None
-                is_paused = False
                 renderer.draw_idle()
 
             if not args.hide_temp and temp is not None:
