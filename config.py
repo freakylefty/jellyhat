@@ -25,6 +25,7 @@ THEME = {
         "temp_led_off": (0, 0, 0),
         "status_idle": (80, 80, 80),
         "status_err": (255, 80, 80),
+        "screen_dim": 0.1
     },
     "layout": {
         # The image size to request from Jellyfin

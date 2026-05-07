@@ -12,8 +12,9 @@ from hardware import DisplayManager
 from renderer import JellyRenderer
 
 def teardown(dm):
-    if 'dm':
+    if dm:
         dm.set_led(THEME["colors"]["temp_led_off"])
+        dm.set_brightness(1)
         dm.clear()
         dm.update()
     sys.exit(0)
@@ -24,8 +25,9 @@ def get_args():
     parser.add_argument("-t", "--threshold", type=float, default=70.0, help="Temp threshold for LED")
     parser.add_argument("-r", "--rotate", action="store_true", help="Rotate 180°")
     parser.add_argument("-b", "--blank", type=int, default=10, help="Minutes before blanking screen")
+    parser.add_argument("-d", "--dim", type=int, default=10, help="Minutes before dimming screen")
     parser.add_argument("-H", "--hide-temp", action="store_true", help="Hide temp text")
-    parser.add_argument("-d", "--debug", action="store_true", help="More verbose error messages")
+    parser.add_argument("-v", "--verbose", action="store_true", help="More verbose error messages")
     return parser.parse_args()
 
 def main():
@@ -48,7 +50,9 @@ def main():
     current_item_id = None
     cached_art = None
     last_active_time = time.time()
+    last_playing_time = time.time()
     is_blanked = False
+    is_paused = False
 
     try:
         while True:
@@ -56,9 +60,13 @@ def main():
             temp = dm.get_system_temp()
             is_hot = temp >= args.threshold if temp is not None else False
             
-            # --- BLANKING LOGIC ---
+            # --- BLANKING / DIMMING LOGIC ---
             if active_item:
                 last_active_time = time.time()
+                is_paused = active_item.get("IsPaused", False)
+                if (not is_paused or is_blanked):
+                    # If we're active and not paused, or if we just started after a gap, reset the pause timer
+                    last_playing_time = time.time()
                 if is_blanked:
                     is_blanked = False
             
@@ -81,9 +89,11 @@ def main():
                     cached_art = client.get_artwork(item_id, THEME["layout"]["art_max_height"], THEME["layout"]["art_max_width"])
                     cached_art = renderer.get_bordered_artwork(cached_art)
 
-                renderer.draw_playing(active_item, cached_art)
+                dimmed = is_paused and (time.time() - last_playing_time) > (args.dim * 60)
+                renderer.draw_playing(active_item, cached_art, dimmed=dimmed)
             else:
                 current_item_id = None
+                is_paused = False
                 renderer.draw_idle()
 
             if not args.hide_temp and temp is not None:
@@ -94,7 +104,7 @@ def main():
             
     except Exception as e:
         print(f"Fatal error: {e}")
-        if args.debug:
+        if args.verbose:
             traceback.print_exc()
     finally:
         teardown(dm)

@@ -39,7 +39,7 @@ class JellyRenderer:
             except Exception:
                 pass
         print("Warning: Placeholder image not found or failed to load. Using blank image.")
-        return Image.new("RGB", (size, size), THEME["colors"]["background"])
+        return Image.new("RGBA", (size, size), THEME["colors"]["background"])
 
     def clear(self, is_hot=False):
         """Clears the display and sets the LED based on thermal status."""
@@ -50,6 +50,7 @@ class JellyRenderer:
     def blank(self):
         """Completely blanks the display and LEDs."""
         self.dm.clear()
+        self.dm.set_brightness(0)
         self.dm.set_led(THEME["colors"]["temp_led_off"])
         self.dm.update()
 
@@ -57,11 +58,13 @@ class JellyRenderer:
         """Renders an error message centered on screen."""
         self.draw_icon("warning", (self.width // 2 - 10, self.height // 2 - 24))
         self.dm.draw_text(message, (self.width // 2, self.height // 2), "status", THEME["colors"]["status_err"], align="center")
+        self.dm.set_brightness(1.0)
 
     def draw_idle(self):
         """Renders the idle screen state."""
         self.draw_icon("stop", (self.width // 2 - 10, self.height // 2 - 24))
         self.dm.draw_text(THEME["strings"]["idle"], (self.width // 2, self.height // 2), "status", THEME["colors"]["status_idle"], align="center")
+        self.dm.set_brightness(1.0)
 
     def get_bordered_artwork(self, artwork):
         """Adds a border around the artwork, with colour based on the art."""
@@ -69,11 +72,11 @@ class JellyRenderer:
             return self.placeholder_img
         border_size = THEME["layout"]["border"]
         border = artwork.resize((1, 1), Image.BOX)
-        bordered_art = Image.new("RGB", (artwork.width + (border_size * 2), artwork.height + (border_size * 2)), border.getpixel((0, 0)))
+        bordered_art = Image.new("RGBA", (artwork.width + (border_size * 2), artwork.height + (border_size * 2)), border.getpixel((0, 0)))
         bordered_art.paste(artwork, (border_size, border_size))
         return bordered_art
 
-    def draw_playing(self, active_item, artwork):
+    def draw_playing(self, active_item, artwork, dimmed=False):
         """Renders the 'Now Playing' screen with artwork and metadata."""
         # Render Artwork
         self.dm.paste_image(artwork, (0, 0))
@@ -112,6 +115,7 @@ class JellyRenderer:
             "meta_sm", 
             THEME["colors"]["text_dim"]
         )
+        self.dm.set_brightness(1 if not dimmed else THEME["colors"]["screen_dim"])
         
 
     def draw_icon(self, icon_key, position):

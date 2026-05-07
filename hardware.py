@@ -9,8 +9,8 @@ class DisplayManager:
         self.height = DisplayHATMini.HEIGHT
         self.rotate = rotate
         self.buffer = Image.new("RGB", (self.width, self.height), THEME["colors"]["background"])
-        self.draw = ImageDraw.Draw(self.buffer)
-        self.dh = DisplayHATMini(self.buffer)
+        self.draw = ImageDraw.Draw(self.buffer, "RGBA")
+        self.dh = DisplayHATMini(self.buffer, backlight_pwm=True)
         self.fonts = self._load_fonts()
         self._temp_enabled = True
 
@@ -37,6 +37,14 @@ class DisplayManager:
 
     def clear(self):
         self.draw.rectangle((0, 0, self.width, self.height), THEME["colors"]["background"])
+
+    def set_brightness(self, brightness):
+        try:
+            # Clamp value between 0 and 1 just in case
+            level = max(0.0, min(1.0, float(brightness)))
+            self.dh.set_backlight(level)
+        except AttributeError:
+            pass
 
     def set_led(self, color_tuple):
         try:
