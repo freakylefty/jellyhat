@@ -124,11 +124,15 @@ class JellyRenderer:
             THEME["colors"]["text_dim"]
         )
 
-        # Render Year
-        year = active_item.get("ProductionYear")
-        if year:
+        # Render Album and Year
+        year = active_item.get("ProductionYear", "")
+        album = active_item.get("Album", "")
+        year = f"({year})" if album else year
+        album_text = self.dm.truncate_text(f"{album} {year}".strip(), "meta", self.width - 20)
+
+        if album_text:
             self.dm.draw_text(
-            f"({year})", 
+            album_text, 
             (THEME["layout"]["info_inset"], THEME["layout"]["art_max_height"] + THEME["layout"]["year_y"]), 
             "meta_sm", 
             THEME["colors"]["text_dim"]
