@@ -43,8 +43,8 @@ class JellyRenderer:
 
     def _load_placeholder(self):
         """Loads and prepares the placeholder artwork."""
-        max_width = THEME["layout"]["art_max_width"]
-        max_height = THEME["layout"]["art_max_height"]
+        max_width = THEME["layout"]["art"]["max_width"]
+        max_height = THEME["layout"]["art"]["max_height"]
 
         placeholder_path = PLACEHOLDER
         if os.path.exists(placeholder_path):
@@ -88,7 +88,7 @@ class JellyRenderer:
         """Adds a border around the artwork, with colour based on the art."""
         if not artwork:
             return self.placeholder_img
-        border_size = THEME["layout"]["border"]
+        border_size = THEME["layout"]["art"]["border"]
         border = artwork.resize((1, 1), Image.BOX)
         bordered_art = Image.new("RGBA", (artwork.width + (border_size * 2), artwork.height + (border_size * 2)), border.getpixel((0, 0)))
         bordered_art.paste(artwork, (border_size, border_size))
@@ -96,49 +96,110 @@ class JellyRenderer:
 
     def draw_playing(self, active_item, artwork, dimmed=False):
         """Renders the 'Now Playing' screen with artwork and metadata."""
+
         # Render Artwork
         self.dm.paste_image(artwork, (0, 0))
 
-        # Render Title with Play/Pause status
         is_paused = active_item.get("IsPaused", False)
-        title = self.dm.truncate_text(active_item.get('Name', 'Unknown'), "title", self.width - 50)
-        
+        self.draw_icon("pause" if is_paused else "play", (THEME["layout"]["icon"]["left"], THEME["layout"]["art"]["max_height"] + THEME["layout"]["icon"]["top"]))
+
+        match active_item.get("Type"):
+            case "Movie" | "Episode" | "Video":
+                self.render_video(active_item.get('Name', 'Unknown'), active_item.get("ProductionYear", ""))
+            case "AudioBook":
+                 self.render_book(active_item.get('Name', 'Unknown'))
+            case "Audio":
+                if active_item.get("ProviderIds", {}).get("BookItemId"):
+                    self.render_book(active_item.get('Name', 'Unknown'))
+                else:
+                    self.render_music(active_item.get('Name', 'Unknown'), active_item.get("Artists", ["Unknown"]), active_item.get("Album", ""), active_item.get("ProductionYear", ""))
+            case _:
+                self.render_generic(active_item.get('Name', 'Unknown'))
+                
+        self.dm.set_brightness(1 if not dimmed else THEME["colors"]["screen_dim"])
+
+    def render_video(self, title, year):
+        # Render Title
+        title_left = THEME["layout"]["video"]["left"]
+        title_right = THEME["layout"]["video"]["right"]
+        title = self.dm.truncate_text(title, "meta", self.width - (title_left + title_right))
         self.dm.draw_text(
             title, 
-            (THEME["layout"]["info_inset"], THEME["layout"]["art_max_height"] + THEME["layout"]["title_y"]), 
-            "title", 
+            (title_left, THEME["layout"]["art"]["max_height"] + THEME["layout"]["video"]["title_top"]), 
+            "meta", 
             THEME["colors"]["text_main"]
         )
 
-        self.draw_icon("pause" if is_paused else "play", (THEME["layout"]["icon_inset"], THEME["layout"]["art_max_height"] + THEME["layout"]["title_y"] + 3))
-
+        # Render Year 
+        if year:
+            self.dm.draw_text(
+            f"{year}",
+            (title_left, THEME["layout"]["art"]["max_height"] + THEME["layout"]["video"]["year_top"]), 
+            "meta", 
+            THEME["colors"]["text_dim"]
+        )
+        
+    def render_music(self, title, artists, album, year):
+        # Render Title
+        left = THEME["layout"]["music"]["left"]
+        right = THEME["layout"]["music"]["right"]
+        max_width = self.width - (left + right)
+        title = self.dm.truncate_text(title, "title", max_width)
+        self.dm.draw_text(
+            title, 
+            (left, THEME["layout"]["art"]["max_height"] + THEME["layout"]["music"]["title_top"]), 
+            "title", 
+            THEME["colors"]["text_main"]
+        )
+       
         # Render Artist
-        artists = active_item.get("Artists", ["Unknown"])
         artist_text = artists[0] if artists else "Unknown"
-        artist = self.dm.truncate_text(artist_text, "meta", self.width - 20)
+        artist = self.dm.truncate_text(artist_text, "meta", max_width)
         
         self.dm.draw_text(
             artist, 
-            (THEME["layout"]["info_inset"], THEME["layout"]["art_max_height"] + THEME["layout"]["artist_y"]), 
+            (left, THEME["layout"]["art"]["max_height"] + THEME["layout"]["music"]["artist_top"]), 
             "meta", 
             THEME["colors"]["text_dim"]
         )
 
         # Render Album and Year
-        year = active_item.get("ProductionYear", "")
-        album = active_item.get("Album", "")
         year = f"({year})" if album else year
-        album_text = self.dm.truncate_text(f"{album} {year}".strip(), "meta", self.width - 20)
+        if self.draw_temp:
+            max_width -= 50 # Make room for temp display
+        album_text = self.dm.truncate_text(f"{album} {year}".strip(), "meta_sm", max_width)
 
         if album_text:
             self.dm.draw_text(
             album_text, 
-            (THEME["layout"]["info_inset"], THEME["layout"]["art_max_height"] + THEME["layout"]["year_y"]), 
+            (left, THEME["layout"]["art"]["max_height"] + THEME["layout"]["music"]["year_top"]), 
             "meta_sm", 
             THEME["colors"]["text_dim"]
         )
-        self.dm.set_brightness(1 if not dimmed else THEME["colors"]["screen_dim"])
-        
+
+    def render_book(self, title):
+        left = THEME["layout"]["generic"]["left"]
+        right = THEME["layout"]["generic"]["right"]
+        max_width = self.width - (left + right)
+        title = self.dm.truncate_text(title, "title", max_width)
+        self.dm.draw_text(
+            title, 
+            (left, THEME["layout"]["art"]["max_height"] + THEME["layout"]["generic"]["title_top"]), 
+            "meta", 
+            THEME["colors"]["text_main"]
+        )
+
+    def render_generic(self, title):
+        left = THEME["layout"]["generic"]["left"]
+        right = THEME["layout"]["generic"]["right"]
+        max_width = self.width - (left + right)
+        title = self.dm.truncate_text(title, "title", max_width)
+        self.dm.draw_text(
+            title, 
+            (left, THEME["layout"]["art"]["max_height"] + THEME["layout"]["generic"]["title_top"]), 
+            "meta", 
+            THEME["colors"]["text_main"]
+        )
 
     def draw_icon(self, icon_key, position):
         """Draws a predefined icon at the specified position."""
@@ -149,7 +210,7 @@ class JellyRenderer:
     def draw_temp(self, temp, is_hot):
         """Renders the system temperature."""
         color = THEME["colors"]["temp_text_hot"] if is_hot else THEME["colors"]["temp_text_normal"]
-        self.dm.draw_text(f"{temp:.1f}C", (self.width - THEME["layout"]["temp_inset"], self.height - THEME["layout"]["temp_y"]), "meta", color, align="right")
+        self.dm.draw_text(f"{temp:.1f}C", (self.width - THEME["layout"]["temp"]["right"], self.height - THEME["layout"]["temp"]["bottom"]), "meta", color, align="right")
 
     def update(self):
         """Triggers the hardware display refresh."""

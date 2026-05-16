@@ -31,20 +31,37 @@ THEME = {
     "layout": {
         # The image size to request from Jellyfin
         # It will be scaled to fit the max width and height while maintaining aspect ratio
-        "art_max_width": 320,
-        "art_max_height": 160,
-        # Horiztonal insets for the text from the left edge of the display
-        "icon_inset": 10, 
-        "info_inset": 34,
-        "temp_inset": 10,
-        # Vertical offsets from the bottom of the artwork
-        "title_y": 8,
-        "artist_y": 36,
-        "year_y": 58,
-        # Vertical offset from the bottom of the display
-        "temp_y": 20,
-        # Size of the border around the artwork, in pixels
-        "border": 4
+        "art": {
+            "max_width": 320,
+            "max_height": 160,
+            "border": 4 # Around the artwork, in pixels
+        },
+        "temp": {
+            "right": 10,
+            "bottom": 20
+        },
+        "icon": {
+            "left": 10,
+            "top": 10
+        },
+        "music": {
+            "left": 34,
+            "right": 10,
+            "title_top": 8, # Relative to artwork bottom
+            "artist_top": 36, # Relative to artwork bottom
+            "year_top": 58 # Relative to artwork bottom
+        },
+        "video": {
+            "left": 34,
+            "right": 10,
+            "title_top": 12, # Relative to artwork bottom
+            "year_top": 30 # Relative to artwork bottom
+        },
+        "generic": {
+            "left": 34,
+            "right": 10,
+            "title_top": 12, # Relative to artwork bottom
+        },
     },
     "strings": {
         "idle": "JELLYHAT IDLE"
