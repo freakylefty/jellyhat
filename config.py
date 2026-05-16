@@ -45,20 +45,20 @@ THEME = {
             "top": 10
         },
         "music": {
-            "left": 34,
+            "left": 10,
             "right": 10,
             "title_top": 8, # Relative to artwork bottom
             "artist_top": 36, # Relative to artwork bottom
             "year_top": 58 # Relative to artwork bottom
         },
         "video": {
-            "left": 34,
+            "left": 10,
             "right": 10,
             "title_top": 12, # Relative to artwork bottom
             "year_top": 30 # Relative to artwork bottom
         },
         "generic": {
-            "left": 34,
+            "left": 10,
             "right": 10,
             "title_top": 12, # Relative to artwork bottom
         },

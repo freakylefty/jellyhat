@@ -10,7 +10,7 @@ class DisplayManager:
         self.width = DisplayHATMini.WIDTH
         self.height = DisplayHATMini.HEIGHT
         self.rotate = rotate
-        self.buffer = Image.new("RGB", (self.width, self.height), THEME["colors"]["background"])
+        self.buffer = Image.new("RGBA", (self.width, self.height), THEME["colors"]["background"])
         self.draw = ImageDraw.Draw(self.buffer, "RGBA")
         self.dh = DisplayHATMini(self.buffer, backlight_pwm=True)
         self.fonts = self._load_fonts()
@@ -37,7 +37,7 @@ class DisplayManager:
         font = self.fonts[font_key]
         if font.getlength(text) <= max_width:
             return text
-        while len(text) > 0 and font.getlength(text) > max_width:
+        while len(text) > 0 and font.getlength(text + "...") > max_width:
             text = text[:-1]
         return text + "..." if text else "..."
 
@@ -66,10 +66,18 @@ class DisplayManager:
             logger.warning("LED control unavailable.")
             self._led_enabled = False
             pass
+    
+    def _get_mask(self, image):
+        if image.mode == 'RGBA':
+            return image.split()[3]  # Use alpha channel as mask
+        return None
 
-    def paste_image(self, image, position=(0, 0)):
-        if image:
-            self.buffer.paste(image, position)
+    def paste_image(self, image, target=None, position=(0, 0)):
+        if not image:
+            return
+        if target is None:
+            target = self.buffer
+        target.paste(image, position, self._get_mask(image))
 
     def draw_text(self, text, position, font_key, color, align="left"):
         if (align == "right"):

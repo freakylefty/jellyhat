@@ -14,8 +14,8 @@ class JellyRenderer:
         self.height = display_manager.height
         self.placeholder_img = self._load_placeholder()
         self.assets = {
-            "play": self._load_asset("play.png"),
-            "pause": self._load_asset("pause.png"),
+            "play": self._load_asset("play.png", size=(50, 50)),
+            "pause": self._load_asset("pause.png", size=(50, 50)),
             "warning": self._load_asset("warning.png"),
             "stop": self._load_asset("stop.png")
         }
@@ -91,17 +91,17 @@ class JellyRenderer:
         border_size = THEME["layout"]["art"]["border"]
         border = artwork.resize((1, 1), Image.BOX)
         bordered_art = Image.new("RGBA", (artwork.width + (border_size * 2), artwork.height + (border_size * 2)), border.getpixel((0, 0)))
-        bordered_art.paste(artwork, (border_size, border_size))
+        self.dm.paste_image(image=artwork, target=bordered_art, position=(border_size, border_size))
         return bordered_art
 
     def draw_playing(self, active_item, artwork, dimmed=False):
         """Renders the 'Now Playing' screen with artwork and metadata."""
 
         # Render Artwork
-        self.dm.paste_image(artwork, (0, 0))
+        self.dm.paste_image(image=artwork, position=(0, 0))
 
         is_paused = active_item.get("IsPaused", False)
-        self.draw_icon("pause" if is_paused else "play", (THEME["layout"]["icon"]["left"], THEME["layout"]["art"]["max_height"] + THEME["layout"]["icon"]["top"]))
+        self.draw_icon("pause" if is_paused else "play", (THEME["layout"]["icon"]["left"], THEME["layout"]["icon"]["top"]))
 
         match active_item.get("Type"):
             case "Movie" | "Episode" | "Video":
@@ -205,7 +205,7 @@ class JellyRenderer:
         """Draws a predefined icon at the specified position."""
         icon = self.assets.get(icon_key)
         if icon:
-            self.dm.paste_image(icon, position)
+            self.dm.paste_image(image=icon, position=position)
 
     def draw_temp(self, temp, is_hot):
         """Renders the system temperature."""
