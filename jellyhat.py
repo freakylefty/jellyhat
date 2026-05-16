@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import logging
 import signal
 import sys
 import time
@@ -12,8 +13,11 @@ from hardware import DisplayManager
 from renderer import JellyRenderer
 from screen_state import ScreenStateManager
 
+logger = logging.getLogger(__name__)
+
 def teardown(dm):
     if dm:
+        logger.info("Cleaning up hardware and exiting.")
         dm.set_led(THEME["colors"]["temp_led_off"])
         dm.set_brightness(1)
         dm.clear()
@@ -23,20 +27,29 @@ def teardown(dm):
 def get_args():
     parser = argparse.ArgumentParser(description="JellyHat")
     parser.add_argument("-i", "--interval", type=int, default=5, help="Refresh interval (s)")
-    parser.add_argument("-t", "--threshold", type=float, default=70.0, help="Temp threshold for LED")
-    parser.add_argument("-r", "--rotate", action="store_true", help="Rotate 180°")
+    parser.add_argument("-t", "--threshold", type=float, default=70.0, help="Temperature threshold for LED")
+    parser.add_argument("-r", "--rotate", action="store_true", help="Rotate the Display HAT output by 180°")
     parser.add_argument("-b", "--blank", type=int, default=10, help="Minutes before blanking screen. Set to 0 to disable blanking.")
-    parser.add_argument("-d", "--dim", type=int, default=10, help="Minutes before dimming screen. Set to 0 to disable dimming.")
+    parser.add_argument("-d", "--dim", type=int, default=2, help="Minutes before dimming screen. Set to 0 to disable dimming.")
     parser.add_argument("-H", "--hide-temp", action="store_true", help="Hide temp text")
-    parser.add_argument("-v", "--verbose", action="store_true", help="More verbose error messages")
+    parser.add_argument("-l", "--log-level", type=str, choices=["debug", "info", "warning", "error"], default="warning", help="Set the logging level")
+
     return parser.parse_args()
 
 def main():
+    args = get_args()
+
+    log_level = getattr(logging, args.log_level.upper(), logging.WARNING)
+    logging.basicConfig(
+        level=log_level,
+        format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
+        datefmt='%H:%M:%S'
+    )
+
     if not JELLYFIN_URL or not JELLYFIN_API_KEY:
-        print("Missing JELLYFIN_URL or JELLYFIN_API_KEY in .env")
+        logger.fatal("Missing JELLYFIN_URL or JELLYFIN_API_KEY in .env")
         sys.exit(1)
         
-    args = get_args()
     client = JellyfinClient(JELLYFIN_URL, JELLYFIN_API_KEY)
     
     try:
@@ -45,7 +58,7 @@ def main():
         signal.signal(signal.SIGINT, lambda sig, frame: teardown(dm))
         signal.signal(signal.SIGTERM, lambda sig, frame: teardown(dm))
     except RuntimeError as e:
-        print(f"Hardware Error: {e}")
+        logger.fatal(f"Hardware Error: {e}", exc_info=True)
         sys.exit(1)
 
     current_item_id = None
@@ -95,9 +108,7 @@ def main():
             time.sleep(args.interval)
             
     except Exception as e:
-        print(f"Fatal error: {e}")
-        if args.verbose:
-            traceback.print_exc()
+        logger.fatal(f"Error in main loop: {e}", exc_info=True)
     finally:
         teardown(dm)
 

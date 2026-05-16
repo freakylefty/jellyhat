@@ -5,10 +5,11 @@ load_dotenv()
 
 JELLYFIN_URL = os.getenv("JELLYFIN_URL", "").rstrip('/')
 JELLYFIN_API_KEY = os.getenv("JELLYFIN_API_KEY")
+PLACEHOLDER = os.getenv("PLACEHOLDER", os.path.join(os.path.dirname(__file__), "assets", "placeholder.jpg"))
+FONT = os.getenv("FONT", os.path.join(os.path.dirname(__file__), "fonts", "Roboto-Medium.ttf"))
 
 THEME = {
     "fonts": {
-        "path": "fonts/Roboto-Medium.ttf",
         "size_title": 22,
         "size_meta": 16,
         "size_meta_sm": 12,

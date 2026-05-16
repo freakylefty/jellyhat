@@ -63,6 +63,10 @@ JellyHat is a Python-based "Now Playing" dashboard for the Pimoroni Display HAT 
    - `JELLYFIN_URL`: Your server address (e.g., `http://192.168.1.50:8096`)
    - `JELLYFIN_API_KEY`: Generated in Jellyfin Dashboard -> API Keys
 
+   Optional variables:
+   - `PLACEHOLDER`: Absolute path to a local image file to use as a fallback when no artwork is available. Uses built-in placeholder if not set.
+   - `FONT`: Absolute path to a .ttf font file for rendering text. Uses the included Roboto-Medium.ttf if not set.
+
 ## Usage
 
 Always run the script using the Python binary within your virtual environment:
@@ -77,9 +81,9 @@ Always run the script using the Python binary within your virtual environment:
 - `--threshold (-t)`: CPU Temp (°C) to trigger Red LED (Default: 70.0)
 - `--rotate (-r)`: Rotate display 180 degrees (Default: False)
 - `--blank (-b)`: Minutes of no playback before screen blanking (Default: 10)
-- `--dim (-d)`: Minutes of playback paused before screen dimming (Default: 1)
+- `--dim (-d)`: Minutes of playback paused before screen dimming (Default: 2)
 - `--hide-temp (-H)`: Hide the CPU temperature text (Default: False)
-- `--verbose (-v)`: Enable verbose console logging (Default: False)
+- `--log-level (-l)`: Set logging level to one of "debug", "info", "warning", or "error" (Default: "warning")
 
 ### Customization
 

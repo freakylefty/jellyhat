@@ -1,6 +1,9 @@
+import logging
 import requests
 from io import BytesIO
 from PIL import Image
+
+logger = logging.getLogger(__name__)
 
 class JellyfinClient:
     def __init__(self, url, api_key):
@@ -28,6 +31,7 @@ class JellyfinClient:
                     
             return None, None
         except Exception as e:
+            logger.warning(f"API Error: {str(e)}")
             return None, f"API Error: {str(e)}"
 
     def get_artwork(self, item_id, max_h, max_w):

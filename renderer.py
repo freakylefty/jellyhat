@@ -1,6 +1,9 @@
 import os
+import logging
 from PIL import Image
-from config import THEME
+from config import THEME, PLACEHOLDER
+
+logger = logging.getLogger(__name__)
 
 class JellyRenderer:
     """Handles the visual layout and rendering for JellyHat."""
@@ -25,21 +28,36 @@ class JellyRenderer:
                 img = Image.open(asset_path).convert("RGBA")
                 return img.resize(size, Image.NEAREST)
         except Exception as e:
-            print(f"Error loading asset {filename}: {e}")
+            logger.warning(f"Could not load asset {filename}: {e}")
         return Image.new("RGBA", size, (0, 0, 0, 0))
+    
+    def _get_scaled_size(self, width, height, max_width, max_height):
+        """Calculates the scaled size for an image while maintaining aspect ratio."""
+        aspect_ratio = width / height
+        new_width = max_width
+        new_height = int(new_width / aspect_ratio)
+        if new_height > max_height:
+            new_height = max_height
+            new_width = int(new_height * aspect_ratio)
+        return new_width, new_height
 
     def _load_placeholder(self):
         """Loads and prepares the placeholder artwork."""
-        size = min(THEME["layout"]["art_max_height"], THEME["layout"]["art_max_width"])
-        placeholder_path = os.path.join(os.path.dirname(__file__), "assets", "placeholder.jpg")
+        max_width = THEME["layout"]["art_max_width"]
+        max_height = THEME["layout"]["art_max_height"]
+
+        placeholder_path = PLACEHOLDER
         if os.path.exists(placeholder_path):
             try:
+                logger.info(f"Loading placeholder from {placeholder_path}")
                 img = Image.open(placeholder_path).convert("RGB")
-                return img.resize((size, size), Image.LANCZOS)
+                width, height = self._get_scaled_size(img.width, img.height, max_width, max_height)
+                img = img.resize((width, height), Image.LANCZOS)
+                return img
             except Exception:
-                pass
-        print("Warning: Placeholder image not found or failed to load. Using blank image.")
-        return Image.new("RGBA", (size, size), THEME["colors"]["background"])
+                logger.error("Failed to process placeholder image", exc_info=True)
+        logger.warning("Placeholder image not found or failed to load. Using blank image.")
+        return Image.new("RGBA", (max_width, max_height), THEME["colors"]["background"])
 
     def clear(self, is_hot=False):
         """Clears the display and sets the LED based on thermal status."""
