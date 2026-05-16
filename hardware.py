@@ -18,21 +18,6 @@ class DisplayManager:
         self._led_enabled = True
         self._backlight_enabled = True
 
-    def _load_fonts(self):
-        font_path = FONT
-        logger.info(f"Loading font from {font_path}")
-        try:
-            return {
-                "title": ImageFont.truetype(font_path, THEME["fonts"]["size_title"]),
-                "meta": ImageFont.truetype(font_path, THEME["fonts"]["size_meta"]),
-                "meta_sm": ImageFont.truetype(font_path, THEME["fonts"]["size_meta_sm"]),
-                "status": ImageFont.truetype(font_path, THEME["fonts"]["size_status"])
-            }
-        except IOError:
-            logger.warning(f"Could not load font at {font_path}, falling back to default.")
-            default = ImageFont.load_default()
-            return {"title": default, "meta": default, "status": default}
-
     def truncate_text(self, text, font_key, max_width):
         font = self.fonts[font_key]
         if font.getlength(text) <= max_width:
@@ -66,11 +51,6 @@ class DisplayManager:
             logger.warning("LED control unavailable.")
             self._led_enabled = False
             pass
-    
-    def _get_mask(self, image):
-        if image.mode == 'RGBA':
-            return image.split()[3]  # Use alpha channel as mask
-        return None
 
     def paste_image(self, image, target=None, position=(0, 0)):
         if not image:
@@ -108,3 +88,23 @@ class DisplayManager:
             logger.warning("System temperature monitoring unavailable.")
             self._temp_enabled = False
             return None
+
+    def _load_fonts(self):
+        font_path = FONT
+        logger.info(f"Loading font from {font_path}")
+        try:
+            return {
+                "title": ImageFont.truetype(font_path, THEME["fonts"]["size_title"]),
+                "meta": ImageFont.truetype(font_path, THEME["fonts"]["size_meta"]),
+                "meta_sm": ImageFont.truetype(font_path, THEME["fonts"]["size_meta_sm"]),
+                "status": ImageFont.truetype(font_path, THEME["fonts"]["size_status"])
+            }
+        except IOError:
+            logger.warning(f"Could not load font at {font_path}, falling back to default.")
+            default = ImageFont.load_default()
+            return {"title": default, "meta": default, "status": default}
+    
+    def _get_mask(self, image):
+        if image.mode == 'RGBA':
+            return image.split()[3]  # Use alpha channel as mask
+        return None
