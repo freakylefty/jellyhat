@@ -176,7 +176,8 @@ Management:
 - `jellyfin_client.py`: JellyFin interaction code.
 - `renderer.py`: Layout and output code.
 - `hardware.py`: Display abstraction and hardware-specific calls.
-- `config.py`: Centralized THEME and configuration logic.
+- `text_util.py`: Text calculations and processing.
+- `config.py`: Centralized theme and configuration logic.
 - `requirements.txt`: Pinned library versions for stability.
 - `fonts/`: Directory for UI fonts (e.g., Roboto).
 - `assets/`: Directory for UI icons and placeholder album art.
