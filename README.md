@@ -80,10 +80,15 @@ Always run the script using the Python binary within your virtual environment:
 - `--interval (-i)`: Refresh rate in seconds (Default: 5)
 - `--threshold (-t)`: CPU Temp (°C) to trigger Red LED (Default: 70.0)
 - `--rotate (-r)`: Rotate display 180 degrees (Default: False)
-- `--blank (-b)`: Minutes of no playback before screen blanking (Default: 10)
-- `--dim (-d)`: Minutes of playback paused before screen dimming (Default: 2)
+- `--blank (-b)`: Minutes of inactivity before blanking the screen (Default: 10)
+- `--dim (-d)`: Minutes of inactivity before dimming the screen (Default: 2)
 - `--hide-temp (-H)`: Hide the CPU temperature text (Default: False)
 - `--log-level (-l)`: Set logging level to one of "debug", "info", "warning", or "error" (Default: "warning")
+
+Notes:
+
+- Setting blanking time to 0 or less disables it.
+- Setting dimming time to 0 or less or greater than blanking time disables it.
 
 ### Customization
 
