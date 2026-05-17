@@ -5,7 +5,6 @@ import logging
 import signal
 import sys
 import time
-import traceback
 
 from config import THEME, JELLYFIN_URL, JELLYFIN_API_KEY
 from jellyfin_client import JellyfinClient
@@ -72,14 +71,14 @@ def main():
             is_hot = temp >= args.threshold if temp is not None else False
             
             is_item_paused = active_item.get("IsPaused", False) if active_item else False
-            screen_state_manager.update_activity(bool(active_item), is_item_paused)
+            screen_state = screen_state_manager.update_activity(bool(active_item), is_item_paused)
             
-            # Handle blanking transition
-            if screen_state_manager.check_for_blanking_transition():
-                renderer.blank()
-            
-            # If currently blanked, skip rendering and wait for next interval
-            if screen_state_manager.is_currently_blanked():
+            # --- Blanking ---
+            # If only just blanked this frame, blank the DisplayHAT
+            # If in blanked state then wait and resume the main loop
+            if screen_state.is_blanked:
+                if not screen_state.was_blanked:
+                    renderer.blank()
                 time.sleep(args.interval)
                 continue
 
@@ -98,8 +97,7 @@ def main():
                     
                     cached_art = renderer.get_bordered_artwork(cached_art)
 
-                dimmed = screen_state_manager.is_dim_needed()
-                renderer.draw_playing(active_item, cached_art, dimmed=dimmed)
+                renderer.draw_playing(active_item, cached_art, dimmed=screen_state.is_dimmed)
             else:
                 current_item_id = None
                 renderer.draw_idle()
