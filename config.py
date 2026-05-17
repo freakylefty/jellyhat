@@ -32,8 +32,8 @@ THEME = {
         # The image size to request from Jellyfin
         # It will be scaled to fit the max width and height while maintaining aspect ratio
         "art": {
-            "max_width": 320,
-            "max_height": 160,
+            "max_width": 312,
+            "max_height": 152,
             "border": 4 # Around the artwork, in pixels
         },
         "temp": {
@@ -45,22 +45,25 @@ THEME = {
             "top": 10
         },
         "music": {
-            "left": 10,
-            "right": 10,
-            "title_top": 8, # Relative to artwork bottom
-            "artist_top": 36, # Relative to artwork bottom
-            "year_top": 58 # Relative to artwork bottom
+            "left": 2,
+            "right": 6,
+            "title_top": 10, # Relative to artwork bottom
+            "title_max_height": 32,
+            "artist_top": 8, # From bottom of title text
+            "year_top": 6 # From bottom of artist text
         },
         "video": {
-            "left": 10,
-            "right": 10,
+            "left": 2,
+            "right": 6,
             "title_top": 12, # Relative to artwork bottom
-            "year_top": 30 # Relative to artwork bottom
+            "title_max_height": 64,
+            "year_top": 6 # From bottom of title text
         },
         "generic": {
-            "left": 10,
-            "right": 10,
+            "left": 2,
+            "right": 6,
             "title_top": 12, # Relative to artwork bottom
+            "title_max_height": 80,
         },
     },
     "strings": {

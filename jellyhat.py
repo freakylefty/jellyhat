@@ -89,10 +89,13 @@ def main():
             if err:
                 renderer.draw_error(err)
             elif active_item:
-                item_id = active_item.get('ParentLogoItemId') or active_item.get('Id')
+                item_id = active_item.get('Id')
                 if item_id != current_item_id:
                     current_item_id = item_id
                     cached_art = client.get_artwork(item_id, THEME["layout"]["art"]["max_height"], THEME["layout"]["art"]["max_width"])
+                    if (not cached_art):
+                        cached_art = client.get_artwork(active_item.get('ParentId'), THEME["layout"]["art"]["max_height"], THEME["layout"]["art"]["max_width"])
+                    
                     cached_art = renderer.get_bordered_artwork(cached_art)
 
                 dimmed = screen_state_manager.is_dim_needed()
