@@ -1,7 +1,7 @@
 import os
 import logging
 from PIL import Image
-from config import THEME, PLACEHOLDER
+from config import THEME, PLACEHOLDER, IDLE_IMAGE
 from text_util import text_handler
 
 logger = logging.getLogger(__name__)
@@ -14,6 +14,7 @@ class JellyRenderer:
         self.width = display_manager.width
         self.height = display_manager.height
         self.placeholder_img = self._load_placeholder()
+        self.idle_img = self._load_idle_bg()
         self.assets = {
             "play": self._load_asset("play.png", size=(50, 50)),
             "pause": self._load_asset("pause.png", size=(50, 50)),
@@ -42,8 +43,13 @@ class JellyRenderer:
 
     def draw_idle(self):
         """Renders the idle screen state."""
-        self._draw_icon("stop", (self.width // 2 - 10, self.height // 2 - 24))
-        self.dm.draw_text(THEME["strings"]["idle"], (self.width // 2, self.height // 2), "status", THEME["colors"]["status_idle"], align="center")
+        if self.idle_img:
+            # Use idle image if set
+            self.dm.paste_image(image=self.idle_img)
+        else:
+            # Use text and icon if no idle image set
+            self._draw_icon("stop", (self.width // 2 - 10, self.height // 2 - 24))
+            self.dm.draw_text(THEME["strings"]["idle"], (self.width // 2, self.height // 2), "status", THEME["colors"]["status_idle"], align="center")
         self.dm.set_brightness(1.0)
 
     def get_bordered_artwork(self, artwork):
@@ -195,18 +201,35 @@ class JellyRenderer:
 
     def _load_placeholder(self):
         """Loads and prepares the placeholder artwork."""
+        logger.info("Loading placeholder artwork")
         max_width = THEME["layout"]["art"]["max_width"]
         max_height = THEME["layout"]["art"]["max_height"]
-
         placeholder_path = PLACEHOLDER
-        if os.path.exists(placeholder_path):
-            try:
-                logger.info(f"Loading placeholder from {placeholder_path}")
-                img = Image.open(placeholder_path).convert("RGB")
-                width, height = self._get_scaled_size(img.width, img.height, max_width, max_height)
-                img = img.resize((width, height), Image.LANCZOS)
-                return img
-            except Exception:
-                logger.error("Failed to process placeholder image", exc_info=True)
+
+        img = self._load_image(placeholder_path, max_width, max_height)
+        if img:
+            return img
         logger.warning("Placeholder image not found or failed to load. Using blank image.")
         return Image.new("RGBA", (max_width, max_height), THEME["colors"]["background"])
+
+    def _load_idle_bg(self):
+        """Loads and prepares the idle background image."""
+        logger.info("Loading idle background image")
+        img_path = IDLE_IMAGE
+        img = self._load_image(img_path, self.width, self.height)
+        if img:
+            return img
+        logger.warning("Idle background image not found or failed to load. Will not show idle screen background.")
+        return None
+    
+    def _load_image(self, img_path, width, height):
+        if os.path.exists(img_path):
+            try:
+                logger.info(f"Loading image from {img_path}")
+                img = Image.open(img_path).convert("RGB")
+                scaled_width, scaled_height = self._get_scaled_size(img.width, img.height, width, height)
+                img = img.resize((scaled_width, scaled_height), Image.LANCZOS)
+                return img
+            except Exception:
+                logger.error("Failed to process image", exc_info=True)
+        return None

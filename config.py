@@ -6,6 +6,7 @@ load_dotenv()
 JELLYFIN_URL = os.getenv("JELLYFIN_URL", "").rstrip('/')
 JELLYFIN_API_KEY = os.getenv("JELLYFIN_API_KEY")
 PLACEHOLDER = os.getenv("PLACEHOLDER", os.path.join(os.path.dirname(__file__), "assets", "placeholder.jpg"))
+IDLE_IMAGE = os.getenv("IDLE_IMAGE", os.path.join(os.path.dirname(__file__), "assets", "idle.jpg"))
 FONT = os.getenv("FONT", os.path.join(os.path.dirname(__file__), "fonts", "Roboto-Medium.ttf"))
 
 THEME = {

@@ -64,7 +64,8 @@ JellyHat is a Python-based "Now Playing" dashboard for the Pimoroni Display HAT 
    - `JELLYFIN_API_KEY`: Generated in Jellyfin Dashboard -> API Keys
 
    Optional variables:
-   - `PLACEHOLDER`: Absolute path to a local image file to use as a fallback when no artwork is available. Uses built-in placeholder if not set.
+   - `PLACEHOLDER`: Absolute path to a local image file to use as a fallback when no artwork is available. Uses `assets/placeholder.jpg` if not set.
+   - `IDLE_IMAGE`: Absolute path to a local image file to use as the idle screen background. Uses `assets/idle.jpg` if not set.
    - `FONT`: Absolute path to a .ttf font file for rendering text. Uses the included Roboto-Medium.ttf if not set.
 
 ## Usage
@@ -189,4 +190,5 @@ This project is licensed under the MIT License.
 
 ## Thanks
 
-Assets from [Kenney](https://www.kenney.nl/).
+Assets from [Kenney](https://www.kenney.nl/), License: [CC0 Public Domain](http://creativecommons.org/publicdomain/zero/1.0/)
+Idle art from [Mick Lissone](https://www.publicdomainpictures.net/en/view-image.php?image=68467), License: [CC0 Public Domain](http://creativecommons.org/publicdomain/zero/1.0/)
